@@ -1,31 +1,20 @@
 from tqdm import tqdm
 from functools import partial
-from typing import Union, Any, Optional
+from typing import Any, Optional
 
 import torch
 import torch.nn.functional as F
 from torch_sparse import SparseTensor
-from torch_geometric.data import Data, InMemoryDataset
+from torch_geometric.data import Data
 
+class RRWPTransform(object):
+    def __init__(self, ksteps=8, add_identity=True, spd=False,):
+        """ Initializing positional encoding with RRWP """
+        self.transform = partial(add_full_rrwp, walk_length=ksteps, add_identity=add_identity, spd=spd,)
 
-def pre_transform_in_memory(dataset: InMemoryDataset, transform_func, show_progress=False,):
-    """Pre-transform already loaded PyG dataset object.
-    Args:
-        dataset: PyG dataset object to modify
-        transform_func: transformation function to apply to each data example
-        show_progress: show tqdm progress bar
-    """
-    if transform_func is None:
-        return dataset
-
-    data_list = [transform_func(dataset.get(i))
-                 for i in tqdm(range(len(dataset)), disable=not show_progress, mininterval=10, miniters=len(dataset)//20)]
-
-    data_list = list(filter(None, data_list))
-
-    dataset._indices = None
-    dataset._data_list = data_list
-    dataset.data, dataset.slices = dataset.collate(data_list)
+    def __call__(self, data):
+        data = self.transform(data)
+        return data
 
 
 def add_node_attr(data: Data, value: Any,
@@ -43,14 +32,8 @@ def add_node_attr(data: Data, value: Any,
 
 
 @torch.no_grad()
-def add_full_rrwp(data,
-                  walk_length=8,
-                  attr_name_abs="rrwp", # name: 'rrwp'
-                  attr_name_rel="rrwp", # name: ('rrwp_idx', 'rrwp_val')
-                  add_identity=True,
-                  spd=False,
-                  **kwargs
-                  ):
+def add_full_rrwp(data, walk_length=8, attr_name_abs="rrwp", attr_name_rel="rrwp",
+                  add_identity=True, spd=False,):
     device=data.edge_index.device
     ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
     num_nodes = data.num_nodes
@@ -101,12 +84,3 @@ def add_full_rrwp(data,
     data.deg = deg.type(torch.long)
 
     return data
-
-
-def precompute_rrwp(data, ksteps=17, spd=False, add_identity=True):
-    """Precompute RRWP positional encodings for the given graph.
-    """
-    transform = partial(add_full_rrwp, walk_length=ksteps, attr_name_abs="rrwp", attr_name_rel="rrwp",
-                        add_identity=add_identity, spd=spd,)
-                        
-    return transform(data)

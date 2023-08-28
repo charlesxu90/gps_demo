@@ -13,7 +13,7 @@ from torch_geometric.data import Data, InMemoryDataset, download_url
 from tqdm import tqdm
 from loguru import logger
 
-from .transform import pre_transform_in_memory, precompute_rrwp
+from .transform import RRWPTransform
 
 
 
@@ -45,46 +45,10 @@ def log_loaded_dataset(dataset):
             logger.info(f"  num classes: {dataset.num_classes}")
 
 
-def set_dataset_attr(dataset, name, value, size):
-    dataset._data_list = None
-    dataset.data[name] = value
-    if dataset.slices is not None:
-        dataset.slices[name] = torch.tensor([0, size], dtype=torch.long)
-
-
-def set_dataset_splits(dataset, splits):
-    """Set given splits to the dataset object.
-
-    Args:
-        dataset: PyG dataset object
-        splits: List of train/val/test split indices
-
-    Raises:
-        ValueError: If any pair of splits has intersecting indices
-    """
-    # First check whether splits intersect and raise error if so.
-    for i in range(len(splits) - 1):
-        for j in range(i + 1, len(splits)):
-            n_intersect = len(set(splits[i]) & set(splits[j]))
-            if n_intersect != 0:
-                raise ValueError(f"Splits must not have intersecting indices: split #{i} (n = {len(splits[i])}) and "
-                    f"split #{j} (n = {len(splits[j])}) have {n_intersect} intersecting indices")
-
-    split_names = ['train_graph_index', 'val_graph_index', 'test_graph_index']
-    for split_name, split_index in zip(split_names, splits):
-        set_dataset_attr(dataset, split_name, split_index, len(split_index))
-
-
 def create_dataset(config):
-    dataset = PeptidesFunctionalDataset(config.dataset_dir)
+    pre_transform = RRWPTransform(**config.pos_enc_rrwp)
+    dataset = PeptidesFunctionalDataset(config.dataset_dir, pre_transform=pre_transform)
     log_loaded_dataset(dataset)
-
-    # Precomputate RRWP positional encoding if enabled
-    if 'pos_enc_rrwp' in config:
-        logger.info(f"Precomputing RRWP positional encoding for all graphs...")
-        if not config.dataset.pe_transform_on_the_fly:
-            pre_transform_in_memory(dataset, partial(precompute_rrwp, **config.pos_enc_rrwp), show_progress=True)
-            logger.info(f"Done RRWP!")
 
     split_idx = dataset.get_idx_split()
     dataset.split_idxs = [split_idx[s] for s in ['train', 'val', 'test']]
