@@ -70,7 +70,7 @@ class TaskTrainer:
         pred = pred.squeeze(-1) if pred.ndim > 1 else pred
         true = true.squeeze(-1) if true.ndim > 1 else true
 
-        logger.debug(f'pred: {pred.shape}, true: {true.shape}')
+        # logger.debug(f'pred: {pred.shape}, true: {true.shape}')
         # pred = F.log_softmax(pred, dim=-1)
         # loss = F.nll_loss(pred.squeeze(), true.squeeze())
         loss = self.loss_fn(pred, true)
@@ -97,7 +97,7 @@ class TaskTrainer:
             else:
                 losses.append(loss.item())
                 pbar.set_description(f"epoch {epoch + 1} iter {it}: train loss {loss:.5f}.")
-                logger.info(f"epoch {epoch + 1} iter {it}: train loss {loss:.5f}.")
+                # logger.debug(f"epoch {epoch + 1} iter {it}: train loss {loss:.5f}.")
                 loss.backward()
                 self.optimizer.step()
                 self.optimizer.zero_grad(set_to_none=True)
