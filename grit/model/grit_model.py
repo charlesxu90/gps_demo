@@ -7,7 +7,7 @@ from torch_geometric.graphgym.models.layer import (new_layer_config, BatchNorm1d
 from ogb.graphproppred.mol_encoder import AtomEncoder
 from ogb.graphproppred.mol_encoder import BondEncoder
 from torch_geometric.graphgym.models.head import GNNGraphHead
-from .rrwp_encoder import RRWPLinearNodeEncoder, RRWPLinearEdgeEncoder
+from .rrwp_pe import RRWPLinearNodeEncoder, RRWPLinearEdgeEncoder
 from .grit_layer import GritTransformerLayer
 
 class FeatureEncoder(torch.nn.Module):
@@ -50,11 +50,6 @@ class GritTransformer(torch.nn.Module):
         self.layers = torch.nn.Sequential(*layers)
 
         self.post_mp = GNNGraphHead(dim_in=hidden_size, dim_out=dim_out)
-
-    # def forward(self, batch):
-    #     for module in self.children():
-    #         batch = module(batch)
-    #     return batch
     
     def forward(self, batch):
         batch = self.get_embd(batch)

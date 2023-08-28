@@ -2,24 +2,9 @@ data:
   dataset_dir: data
   batch_size: 32              # batch size
   num_workers: 4               # number of workers for data loading
-
-  dataset:
-    pe_transform_on_the_fly: False
-    # pe_transform_on_the_fly: True
-    task: graph
-
-  # metis:
-  #   n_patches: 40           # The number of partitions
-  #   drop_rate: 0.3          # Whether to randomly drop a set of edges before each metis partition
-  #   num_hops: 2             # expanding patches with k hop neighbourhood
-
   pos_enc_rrwp:
     ksteps: 17
-    add_identity: True
-    spd: False
 
-  # root: 'data/CycPeptMPDB/'   # data folder, contain two files: train.csv and val.csv
-  # smiles_col: 'smi'           # smi
   target_col: 'score'
 
 model:

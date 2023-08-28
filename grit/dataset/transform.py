@@ -8,34 +8,23 @@ from torch_sparse import SparseTensor
 from torch_geometric.data import Data
 
 class RRWPTransform(object):
-    def __init__(self, ksteps=8, add_identity=True, spd=False,):
+    def __init__(self, ksteps=8):
         """ Initializing positional encoding with RRWP """
-        self.transform = partial(add_full_rrwp, walk_length=ksteps, add_identity=add_identity, spd=spd,)
+        self.transform = partial(add_full_rrwp, walk_length=ksteps)
 
     def __call__(self, data):
         data = self.transform(data)
         return data
 
 
-def add_node_attr(data: Data, value: Any,
-                  attr_name: Optional[str] = None) -> Data:
-    if attr_name is None:
-        if 'x' in data:
-            x = data.x.view(-1, 1) if data.x.dim() == 1 else data.x
-            data.x = torch.cat([x, value.to(x.device, x.dtype)], dim=-1)
-        else:
-            data.x = value
-    else:
-        data[attr_name] = value
-
+def add_node_attr(data: Data, value: Any, attr_name: Optional[str] = None) -> Data:
+    data[attr_name] = value
     return data
 
 
 @torch.no_grad()
-def add_full_rrwp(data, walk_length=8, attr_name_abs="rrwp", attr_name_rel="rrwp",
-                  add_identity=True, spd=False,):
-    device=data.edge_index.device
-    ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
+def add_full_rrwp(data, walk_length=8, attr_name_abs="rrwp"):
+    
     num_nodes = data.num_nodes
     edge_index, edge_weight = data.edge_index, data.edge_weight
 
@@ -48,19 +37,16 @@ def add_full_rrwp(data, walk_length=8, attr_name_abs="rrwp", attr_name_rel="rrwp
     adj = adj * deg_inv.view(-1, 1)
     adj = adj.to_dense()
 
-    pe_list = []
-    i = 0
-    if add_identity:
-        pe_list.append(torch.eye(num_nodes, dtype=torch.float))
-        i = i + 1
-
-    out = adj
+    pe_list = [torch.eye(num_nodes, dtype=torch.float)]
     pe_list.append(adj)
 
-    if walk_length > 2:
-        for j in range(i + 1, walk_length):
-            out = out @ adj
-            pe_list.append(out)
+    if walk_length <= 2:
+        raise ValueError("walk_length must be greater than 2")
+    
+    out = adj
+    for j in range(len(pe_list), walk_length):
+        out = out @ adj
+        pe_list.append(out)
 
     pe = torch.stack(pe_list, dim=-1) # n x n x k
 
@@ -70,16 +56,9 @@ def add_full_rrwp(data, walk_length=8, attr_name_abs="rrwp", attr_name_rel="rrwp
     rel_pe_row, rel_pe_col, rel_pe_val = rel_pe.coo()
     rel_pe_idx = torch.stack([rel_pe_row, rel_pe_col], dim=0)
 
-    if spd:
-        spd_idx = walk_length - torch.arange(walk_length)
-        val = (rel_pe_val > 0).type(torch.float) * spd_idx.unsqueeze(0)
-        val = torch.argmax(val, dim=-1)
-        rel_pe_val = F.one_hot(val, walk_length).type(torch.float)
-        abs_pe = torch.zeros_like(abs_pe)
-
     data = add_node_attr(data, abs_pe, attr_name=attr_name_abs)
-    data = add_node_attr(data, rel_pe_idx, attr_name=f"{attr_name_rel}_index")
-    data = add_node_attr(data, rel_pe_val, attr_name=f"{attr_name_rel}_val")
+    data = add_node_attr(data, rel_pe_idx, attr_name=f"{attr_name_abs}_index")
+    data = add_node_attr(data, rel_pe_val, attr_name=f"{attr_name_abs}_val")
     data.log_deg = torch.log(deg + 1)
     data.deg = deg.type(torch.long)
 
