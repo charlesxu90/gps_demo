@@ -1,5 +1,5 @@
 # GPS demos
-Play with common GPS follow-up works, including GPS, Grit, MGT-WavePE, GPS++, EGT.
+Play with common GPS follow-up works, including GPS, Grit, MGT-WavePE, and GPS++.
 
 ## Prepare environment
 
