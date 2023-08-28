@@ -5,7 +5,6 @@ import shutil
 
 import pandas as pd
 import torch
-from functools import partial
 from ogb.utils import smiles2graph
 from ogb.utils.torch_util import replace_numpy_with_torchtensor
 from ogb.utils.url import decide_download
@@ -13,36 +12,8 @@ from torch_geometric.data import Data, InMemoryDataset, download_url
 from tqdm import tqdm
 from loguru import logger
 
+from utils.graph_utils import log_loaded_dataset
 from .transform import RRWPTransform
-
-
-
-def log_loaded_dataset(dataset):
-    """ Log dataset information. """
-    logger.info(f"Info of the loaded dataset:")
-    data = dataset._data
-    logger.info(f"  {data}")
-    logger.info(f"  undirected: {dataset[0].is_undirected()}")
-    logger.info(f"  num graphs: {len(dataset)}")
-
-    total_num_nodes = 0
-    if hasattr(data, 'num_nodes'):
-        total_num_nodes = data.num_nodes
-    elif hasattr(data, 'x'):
-        total_num_nodes = data.x.size(0)
-
-    logger.info(f"  avg num_nodes/graph: {total_num_nodes // len(dataset)}")
-    logger.info(f"  num node features: {dataset.num_node_features}")
-    logger.info(f"  num edge features: {dataset.num_edge_features}")
-    
-    if hasattr(dataset, 'num_tasks'):
-        logger.info(f"  num tasks: {dataset.num_tasks}")
-
-    if hasattr(data, 'y') and data.y is not None:
-        if data.y.numel() == data.y.size(0) and torch.is_floating_point(data.y):
-            logger.info(f"  num classes: (appears to be a regression task)")
-        else:
-            logger.info(f"  num classes: {dataset.num_classes}")
 
 
 def create_dataset(config):
@@ -68,24 +39,8 @@ class PeptidesFunctionalDataset(InMemoryDataset):
         PyG dataset of 15,535 peptides represented as their molecular graph
         (SMILES) with 10-way multi-task binary classification of their
         functional classes.
-
-        The goal is use the molecular representation of peptides instead
-        of amino acid sequence representation ('peptide_seq' field in the file,
-        provided for possible baseline benchmarking but not used here) to test
-        GNNs' representation capability.
-
-        The 10 classes represent the following functional classes (in order):
-            ['antifungal', 'cell_cell_communication', 'anticancer',
-            'drug_delivery_vehicle', 'antimicrobial', 'antiviral',
-            'antihypertensive', 'antibacterial', 'antiparasitic', 'toxic']
-
-        Args:
-            root (string): Root directory where the dataset should be saved.
-            smiles2graph (callable): A callable function that converts a SMILES
-                string into a graph object. We use the OGB featurization.
-                * The default smiles2graph requires rdkit to be installed *
         """
-
+        
         self.original_root = root
         self.smiles2graph = smiles2graph
         self.folder = osp.join(root, 'peptides-functional')
