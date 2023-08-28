@@ -1,0 +1,48 @@
+data: 
+  dataset_dir: data
+  batch_size: 32              # batch size
+  num_workers: 4               # number of workers for data loading
+
+  dataset:
+    pe_transform_on_the_fly: False
+    # pe_transform_on_the_fly: True
+    task: graph
+
+  # metis:
+  #   n_patches: 40           # The number of partitions
+  #   drop_rate: 0.3          # Whether to randomly drop a set of edges before each metis partition
+  #   num_hops: 2             # expanding patches with k hop neighbourhood
+
+  pos_enc_rrwp:
+    ksteps: 17
+    add_identity: True
+    spd: False
+
+  # root: 'data/CycPeptMPDB/'   # data folder, contain two files: train.csv and val.csv
+  # smiles_col: 'smi'           # smi
+  target_col: 'score'
+
+model:
+  grit:
+    hidden_size: 96
+    layers_pre_mp: 0
+    n_layers: 4
+    n_heads: 4
+    dropout: 0.0
+    attn_dropout: 0.5
+
+#   cl_model:
+#     enc_width: 128
+#     proj_dim: 256
+#     temp_scale: 0.07
+
+train:  # Training params
+  device: 'cuda'                    # device to use for training
+  max_epochs: 1000                  # *total number of epochs, 200
+  use_amp: true                     # whether to use torch.amp for automatic mixed precision training
+  task_type: classification             # task type, 'classification' or 'regression'
+  learning_rate: 0.001              # *learning rate
+  lr_patience: 20
+  lr_decay: 0.5
+  min_lr: 1e-6
+  weight_decay: 0.
