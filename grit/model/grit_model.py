@@ -4,8 +4,7 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.models.gnn import GNNPreMP
 from torch_geometric.graphgym.models.layer import (new_layer_config, BatchNorm1dNode)
 
-from ogb.graphproppred.mol_encoder import AtomEncoder
-from ogb.graphproppred.mol_encoder import BondEncoder
+from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
 from torch_geometric.graphgym.models.head import GNNGraphHead
 from .rrwp_pe import RRWPLinearNodeEncoder, RRWPLinearEdgeEncoder
 from .grit_layer import GritTransformerLayer

@@ -4,11 +4,11 @@ from pathlib import Path
 from torch_geometric.loader import DataLoader
 
 from utils.utils import parse_config, set_random_seed, log_GPU_info, load_model
-
 from .dataset.dataset import create_dataset
 from .model.gps_model import GPSModel
+# from .model.grit_model import GritTransformer
+# from .model.cl_model import CLModel
 from .task_trainer import TaskTrainer
-from .model.cl_model import CLModel
 
 
 def get_dataloaders(config):
@@ -26,17 +26,16 @@ def main(args, config):
     log_GPU_info()
     
     train_dataloader, val_dataloader, test_dataloader = get_dataloaders(config.data)
-    nout = len(config.data.target_col.split(','))
-    model = GraphMLPMixer(nout=nout, **config.model.graphvit, rw_dim=config.data.pos_enc.rw_dim, 
-                          patch_rw_dim=config.data.pos_enc.patch_rw_dim, n_patches=config.data.metis.n_patches)
+    nout = 10 # len(config.data.target_col.split(','))
+    model = GPSModel(dim_in=config.model.dim_in, dim_out=config.model.dim_out, gnn_config=config.model.gnn, gt_config=config.model.gt)
     
     if args.ckpt is not None:
        model = load_model(model, args.ckpt)
 
-    if args.ckpt_cl is not None:
-       cl_model = CLModel(model, **config.model.cl_model)
-       cl_model = load_model(cl_model, args.ckpt_cl)
-       model = cl_model.encoder
+    # if args.ckpt_cl is not None:
+    #    cl_model = CLModel(model, **config.model.cl_model)
+    #    cl_model = load_model(cl_model, args.ckpt_cl)
+    #    model = cl_model.encoder
     
     logger.info(f"Start training")
     trainer = TaskTrainer(model, args.output_dir, **config.train)
@@ -44,10 +43,11 @@ def main(args, config):
     logger.info(f"Training finished")
 
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='graph_vit/task_finetune.yaml')
-    parser.add_argument('--output_dir', default='results/graph_vit/task_finetune')
+    parser.add_argument('--config', default='gps/task_finetune.yaml')
+    parser.add_argument('--output_dir', default='results/gps/task_finetune')
     parser.add_argument('--seed', default=42, type=int)
     parser.add_argument('--ckpt', default=None, type=str)
     parser.add_argument('--ckpt_cl', default=None, type=str)

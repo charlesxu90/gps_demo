@@ -1,0 +1,56 @@
+data: 
+  dataset_dir: data
+  batch_size: 32              # batch size
+  num_workers: 4               # number of workers for data loading
+  pos_enc_lap:
+    laplacian_norm: none
+    eigvec_norm: L2
+    max_freqs: 10
+
+  target_col: 'score'
+
+model:
+  dim_in: 9
+  dim_out: 10
+
+  # grit:
+  #   hidden_size: 96
+  #   layers_pre_mp: 0
+  #   n_layers: 4
+  #   n_heads: 4
+  #   dropout: 0.0
+  #   attn_dropout: 0.5
+  graph_pooling: mean
+  gt:
+    layer_type: CustomGatedGCN+Transformer
+    layers: 4
+    n_heads: 4
+    dim_hidden: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
+    dropout: 0.0
+    attn_dropout: 0.5
+    layer_norm: False
+    batch_norm: True
+  gnn:
+    head: default
+    layers_pre_mp: 0
+    layers_post_mp: 1  # Not used when `gnn.head: san_graph`
+    dim_inner: 96  # `gt.dim_hidden` must match `gnn.dim_inner`
+    batchnorm: True
+    act: relu
+    dropout: 0.0
+
+#   cl_model:
+#     enc_width: 128
+#     proj_dim: 256
+#     temp_scale: 0.07
+
+train:  # Training params
+  device: 'cuda'                    # device to use for training
+  max_epochs: 20                  # *total number of epochs, 200
+  use_amp: true                     # whether to use torch.amp for automatic mixed precision training
+  task_type: classification             # task type, 'classification' or 'regression'
+  learning_rate: 0.0001              # *learning rate
+  lr_patience: 20
+  lr_decay: 0.5
+  min_lr: 1e-5
+  weight_decay: 0.
