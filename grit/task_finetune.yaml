@@ -23,7 +23,7 @@ model:
 
 train:  # Training params
   device: 'cuda'                    # device to use for training
-  max_epochs: 1000                  # *total number of epochs, 200
+  max_epochs: 20                  # *total number of epochs, 200
   use_amp: true                     # whether to use torch.amp for automatic mixed precision training
   task_type: classification             # task type, 'classification' or 'regression'
   learning_rate: 0.001              # *learning rate
