@@ -46,8 +46,8 @@ def main(args, config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='graph_vit/task_finetune.yaml')
-    parser.add_argument('--output_dir', default='results/graph_vit/task_finetune')
+    parser.add_argument('--config', default='grit/task_finetune.yaml')
+    parser.add_argument('--output_dir', default='results/grit/task_finetune')
     parser.add_argument('--seed', default=42, type=int)
     parser.add_argument('--ckpt', default=None, type=str)
     parser.add_argument('--ckpt_cl', default=None, type=str)

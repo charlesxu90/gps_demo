@@ -69,7 +69,7 @@ def log_GPU_info():
     logger.info(f'GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1024 ** 3} GB')
 
 def get_metrics(y_hat, y_test, print_metrics=True):
-    from sklearn.metrics import accuracy_score, recall_score, matthews_corrcoef, roc_auc_score
+    from sklearn.metrics import accuracy_score, precision_score, recall_score, matthews_corrcoef, roc_auc_score
 
     # logger.debug(f'y_hat: {y_hat}, y_test: {y_test}')
     nas = np.logical_or(np.isnan(y_hat), np.isnan(y_test))
@@ -79,15 +79,16 @@ def get_metrics(y_hat, y_test, print_metrics=True):
         return np.nan, np.nan, np.nan, np.nan, np.nan
     
     acc = accuracy_score(y_test, y_hat)
+    pr = precision_score(y_test, y_hat)
     sn = recall_score(y_test, y_hat)
     sp = recall_score(y_test, y_hat, pos_label=0)
     mcc = matthews_corrcoef(y_test, y_hat)
     auroc = roc_auc_score(y_test, y_hat)
     
     if print_metrics:
-        print(f'Acc(%) \t Sn(%) \t Sp(%) \t MCC \t AUROC')
-        print(f'{acc*100:.2f}\t{sn*100:.2f}\t{sp*100:.2f}\t{mcc:.3f}\t{auroc:.3f}')
-    return acc, sn, sp, mcc, auroc
+        print(f'Acc(%) \t Pr(%) \t Sn(%) \t Sp(%) \t MCC \t AUROC')
+        print(f'{acc*100:.2f}\t{pr*100:.2f}\t{sn*100:.2f}\t{sp*100:.2f}\t{mcc:.3f}\t{auroc:.3f}')
+    return acc, pr, sn, sp, mcc, auroc
 
 class ContrastiveLoss(torch.nn.Module):
     def __init__(self, margin=1.0):

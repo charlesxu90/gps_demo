@@ -140,8 +140,8 @@ class TaskTrainer:
             self.writer.add_scalar('spearman', spearman, epoch + 1)
             metric = spearman
         elif self.task_type == 'classification':
-            acc, sn, sp, mcc, auroc = get_metrics(y_test_hat > 0.5, y_test, print_metrics=False)
-            logger.info(f'{e_type} epoch: {epoch+1}, acc: {acc*100:.2f}, sn: {sn*100:.3f}, sp: {sp:.2f}, mcc: {mcc:.3f}, auroc: {auroc:.3f}')
+            acc, pr, sn, sp, mcc, auroc = get_metrics(y_test_hat > 0.5, y_test, print_metrics=False)
+            logger.info(f'{e_type} epoch: {epoch+1}, acc: {acc*100:.2f}, pr: {pr*100:.3f}, sn: {sn*100:.3f}, sp: {sp:.2f}, mcc: {mcc:.3f}, auroc: {auroc:.3f}')
             self.writer.add_scalar('mcc', mcc, epoch + 1)
             metric = mcc
         return loss, metric
