@@ -86,14 +86,13 @@ class TaskTrainer:
                 with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self.use_amp):
                     loss, _, _ = self.run_forward(model, batch)
                     loss = loss.mean()  # collapse all losses if they are scattered on multiple gpus
-                    losses.append(loss.item())
             else:
                 loss, _, _ = self.run_forward(model, batch)
 
             if self.loss_anomaly_detector(loss.item()):
                 logger.info(f"Anomaly loss detected at epoch {epoch + 1} iter {it}: train loss {loss:.5f}.")
                 del loss, batch
-                return np.nan
+                continue
             else:
                 losses.append(loss.item())
                 pbar.set_description(f"epoch {epoch + 1} iter {it}: train loss {loss:.5f}.")

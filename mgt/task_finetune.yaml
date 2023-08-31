@@ -1,0 +1,46 @@
+data: 
+  dataset_dir: data
+  batch_size: 128              # batch size
+  num_workers: 4               # number of workers for data loading
+  pos_enc_wavelet:
+    is_undirected: true
+    dim: 8
+
+  target_col: 'score'
+
+model:
+  device: cuda:0
+  pe_name: wave
+  batch_size: 128
+  num_layer: 2
+  num_epoch: 200
+  num_head: 4
+  norm: batch
+  emb_dim: 84
+  num_task: 10
+  dropout: 0.25
+  residual: 1
+  num_cluster: 10
+  attn_dropout: 0.5
+  local_gnn_type: CustomGatedGCN
+  global_model_type: Transformer
+  pos_dim: 8
+  version: custom
+  gnn_type: gine # only used for MGT (not CustomMGT)
+  seed: 1
+
+#   cl_model:
+#     enc_width: 128
+#     proj_dim: 256
+#     temp_scale: 0.07
+
+train:  # Training params
+  device: 'cuda'                    # device to use for training
+  max_epochs: 100                  # *total number of epochs, 200
+  use_amp: false                     # MGT doesn't support AMP 
+  task_type: classification             # task type, 'classification' or 'regression'
+  learning_rate: 0.0001              # *learning rate
+  lr_patience: 20
+  lr_decay: 0.5
+  min_lr: 1e-6
+  weight_decay: 0.

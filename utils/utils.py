@@ -79,7 +79,7 @@ def get_metrics(y_hat, y_test, print_metrics=True):
         return np.nan, np.nan, np.nan, np.nan, np.nan
     
     acc = accuracy_score(y_test, y_hat)
-    pr = precision_score(y_test, y_hat)
+    pr = precision_score(y_test, y_hat, zero_division=np.nan)
     sn = recall_score(y_test, y_hat)
     sp = recall_score(y_test, y_hat, pos_label=0)
     mcc = matthews_corrcoef(y_test, y_hat)
