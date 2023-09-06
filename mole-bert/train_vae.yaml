@@ -1,0 +1,31 @@
+data: 
+  dataset: zinc_standard_agent  # dataset name
+  dataset_dir: data/zinc_standard_agent
+  batch_size: 256              # batch size
+  num_workers: 4               # number of workers for data loading
+
+model:
+  emb_dim: 300
+  num_tokens: 512
+  pred_edge: True
+  gnn:
+    num_layer: 5
+    JK: last
+    drop_ratio: 0.5
+  vq_encoder:
+    commitment_cost: 0.25
+  vq_decoder:
+    num_layer: 5
+  
+  graph_pooling:  mean
+
+
+train:  # Training params
+  task_type: vqvae
+  device: 'cuda'                    # device to use for training
+  max_epochs: 60                    # *total number of epochs, 200
+  learning_rate: 0.001              # *learning rate
+  lr_patience: 20
+  lr_decay: 0.5
+  min_lr: 1e-6
+  weight_decay: 0.
