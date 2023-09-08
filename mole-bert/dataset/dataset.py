@@ -244,12 +244,24 @@ def _load_sider_dataset(input_path):
        'Nervous system disorders',
        'Injury, poisoning and procedural complications']
     labels = input_df[tasks]
-    # convert 0 to -1
-    labels = labels.replace(0, -1)
     assert len(smiles_list) == len(rdkit_mol_objs_list)
     assert len(smiles_list) == len(labels)
     return smiles_list, rdkit_mol_objs_list, labels.value
 
+
+def _load_cycpep_dataset(input_path):
+    """
+    :param input_path:
+    :return: list of smiles, list of rdkit mol obj, np.array containing the
+    labels
+    """
+    input_df = pd.read_csv(input_path, sep=',')
+    smiles_list = input_df['smi']
+    rdkit_mol_objs_list = [AllChem.MolFromSmiles(s) for s in smiles_list]
+    labels = input_df['is_cpp']
+    assert len(smiles_list) == len(rdkit_mol_objs_list)
+    assert len(smiles_list) == len(labels)
+    return smiles_list, rdkit_mol_objs_list, labels.values
 
 class MoleculeDataset(InMemoryDataset):
     def __init__(self,
@@ -335,6 +347,17 @@ class MoleculeDataset(InMemoryDataset):
                 # manually add mol id
                 data.id = torch.tensor([i])  # id here is the index of the mol in the dataset
                 data.y = torch.tensor(labels[i, :])
+                data_list.append(data)
+                data_smiles_list.append(smiles_list[i])
+
+        elif self.dataset == 'cycpeptmpdb':
+            smiles_list, rdkit_mol_objs, labels = _load_cycpep_dataset(self.raw_paths[0])
+            for i in tqdm(range(len(smiles_list))):
+                rdkit_mol = rdkit_mol_objs[i]
+                data = mol_to_graph_data_obj_simple(rdkit_mol)
+                # manually add mol id
+                data.id = torch.tensor([i])  # id here is the index of the mol in the dataset
+                data.y = torch.tensor(labels[i])
                 data_list.append(data)
                 data_smiles_list.append(smiles_list[i])
 

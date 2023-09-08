@@ -72,7 +72,6 @@ class TaskTrainer:
             pred = pred.view(-1)
             is_labeled = batch.y == batch.y
             pred, true = pred[is_labeled], true[is_labeled]
-            true = (true + 1)/2     # Original [-1, 1] to [0, 1]
             loss = self.loss_fn(pred.float(), true.float())
             return loss, pred, true
     

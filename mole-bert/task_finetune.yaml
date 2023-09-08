@@ -1,9 +1,10 @@
 data: 
-  dataset: sider  # dataset name
+  dataset: cycpeptmpdb  # dataset name, sider, cycpeptmpdb
   batch_size: 256              # batch size
   num_workers: 4               # number of workers for data loading
 
 model:
+  num_tasks: 1                # number of labels to be predicted, 1 for cycpeptmpdb, 27 for sider
   pred_model:
     num_layer:  5
     emb_dim:  300
