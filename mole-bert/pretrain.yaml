@@ -1,13 +1,16 @@
 data: 
   dataset: zinc_standard_agent  # dataset name
-  # dataset_dir: data/zinc_standard_agent
-  batch_size: 256              # batch size
+  # dataset_dir: data
+  batch_size: 32              # batch size
   num_workers: 4               # number of workers for data loading
+  mask_edge: True
+  mask_rate1: 0.15
+  mask_rate2: 0.30
 
 model:
   emb_dim: 300
   num_tokens: 512
-  pred_edge: True
+  pred_edge: True              # whether to predict edge in VQ-VAE
   gnn:
     num_layer: 5
     JK: last
@@ -15,8 +18,9 @@ model:
   vq_encoder:
     num_layer: 5
 
+
 train:  # Training params
-  task_type: vqvae
+  task_type: pretrain
   device: 'cuda'                    # device to use for training
   max_epochs: 60                    # *total number of epochs, 200
   learning_rate: 0.001              # *learning rate

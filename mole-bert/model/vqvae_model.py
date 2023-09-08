@@ -37,15 +37,7 @@ class DiscreteGNN(torch.nn.Module):
         self.gnns = torch.nn.ModuleList([GINConv(emb_dim, emb_dim, aggr="add") for _ in range(num_layer)])
         self.batch_norms = torch.nn.ModuleList([torch.nn.BatchNorm1d(emb_dim) for _ in range(num_layer)])
         
-    def forward(self, *argv):
-        if len(argv) == 3:
-            x, edge_index, edge_attr = argv[0], argv[1], argv[2]
-        elif len(argv) == 1:
-            data = argv[0]
-            x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
-        else:
-            raise ValueError("unmatched number of arguments.")
-
+    def forward(self, x, edge_index, edge_attr):        
         x = self.x_embedding1(x[:,0]) + self.x_embedding2(x[:,1])
         h_list = [x]
         for layer in range(self.num_layer):
@@ -74,8 +66,8 @@ class DiscreteGNN(torch.nn.Module):
         return node_representation
 
     @torch.no_grad()
-    def get_codebook_indices(self, *argv):
-        logits = self(*argv)
+    def get_codebook_indices(self, x, edge_index, edge_attr):
+        logits = self(x, edge_index, edge_attr)
         codebook_indices = logits.argmax(dim = -1)
         return codebook_indices
 
@@ -185,8 +177,8 @@ class VQVAE(nn.Module):
         self.num_tokens = config.num_tokens
         self.pred_edge = config.pred_edge
 
-        self.tokenizer = DiscreteGNN(emb_dim=self.emb_dim, num_tokens=self.num_tokens, **config.vq_decoder)
-        self.codebook = VectorQuantizer(emb_dim=self.emb_dim, num_tokens=self.num_tokens, **config.vq_encoder)
+        self.tokenizer = DiscreteGNN(emb_dim=self.emb_dim, num_tokens=self.num_tokens, **config.vq_encoder)
+        self.codebook = VectorQuantizer(emb_dim=self.emb_dim, num_tokens=self.num_tokens)
 
         self.atom_predictor = GNNDecoder(self.emb_dim, NUM_NODE_ATTR)
         self.atom_chiral_predictor = GNNDecoder(self.emb_dim, NUM_NODE_CHIRAL)

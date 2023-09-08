@@ -2,29 +2,14 @@ import warnings
 import argparse
 from loguru import logger
 from pathlib import Path
-import copy
-from tqdm import tqdm
-import torch
-import torch.nn as nn
 from torch_geometric.loader import DataLoader
 
-from utils.utils import parse_config, set_random_seed, log_GPU_info, load_model
-from .dataset.dataset import create_dataset, MoleculeDataset
-from .dataset.dataloader import DataLoaderMaskingPred
-from .model.model import GNN
+from utils.utils import parse_config, set_random_seed, log_GPU_info
+from .dataset.dataset import MoleculeDataset
 from .model.vqvae_model import VQVAE
 from .model.task_trainer import TaskTrainer
 
 warnings.filterwarnings("ignore")
-
-def get_dataloaders(config):
-    train_set, val_set, test_set = create_dataset(config)
-
-    train_dataloader = DataLoader(train_set, batch_size=config.batch_size, num_workers=config.num_workers, pin_memory=True)
-    val_dataloader = DataLoader(val_set, batch_size=config.batch_size, shuffle=False, num_workers=config.num_workers, pin_memory=True)
-    test_dataloader = DataLoader(test_set, batch_size=config.batch_size, shuffle=False, num_workers=config.num_workers, pin_memory=True)
-
-    return train_dataloader, val_dataloader, test_dataloader
 
 
 def main(args, config):
