@@ -1,0 +1,34 @@
+data: 
+  dataset: sider  # dataset name
+  batch_size: 256              # batch size
+  num_workers: 4               # number of workers for data loading
+
+model:
+  pred_model:
+    num_layer:  5
+    emb_dim:  300
+    JK:  last
+    drop_ratio:  0.5
+    graph_pooling:  mean
+  pretrain:
+    emb_dim: 300
+    num_tokens: 512
+    pred_edge: True              # whether to predict edge in VQ-VAE
+    gnn:
+      num_layer: 5
+      JK: last
+      drop_ratio: 0.5
+    vq_encoder:
+      num_layer: 5
+ 
+
+train:  # Training params
+  device: 'cuda'                    # device to use for training
+  max_epochs: 100                  # *total number of epochs, 200
+  use_amp: false                     # MGT doesn't support AMP 
+  task_type: classification             # task type, 'classification' or 'regression'
+  learning_rate: 0.0001              # *learning rate
+  lr_patience: 20
+  lr_decay: 0.5
+  min_lr: 1e-6
+  weight_decay: 0.

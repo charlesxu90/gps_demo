@@ -54,6 +54,7 @@ def parse_config(config_file):
 def save_model(model, base_dir, base_name):
     raw_model = model.module if hasattr(model, "module") else model
     torch.save(raw_model.state_dict(), get_path(base_dir, base_name, '.pt'))
+    return get_path(base_dir, base_name, '.pt')
 
 
 def load_model(model, model_weights_path, copy_to_cpu=True):

@@ -31,11 +31,12 @@ def load_data(config):
 
     return loader, len_loader
 
-def create_model(config, vae_ckpt):
+def create_model(config, vae_ckpt=None):
     emb_dim, num_tokens = config.emb_dim, config.num_tokens
 
     vae_model = VQVAE(config)
-    vae_model = load_model(vae_model, vae_ckpt)
+    if vae_ckpt is not None:
+        vae_model = load_model(vae_model, vae_ckpt)
 
     tmp_folder = '/tmp/vae_model_' + str(time.time())
     Path(tmp_folder).mkdir(parents=True, exist_ok=True) 

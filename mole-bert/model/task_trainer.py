@@ -60,31 +60,35 @@ class TaskTrainer:
             self._save_model(self.output_dir, 'final', curr_loss)
 
     def run_forward(self, model, batch):
-        batch = batch.to(self.device)
         if self.task_type == 'vqvae':
+            batch = batch.to(self.device)
             loss = model(batch)
             return loss, None, None
         else:
+            batch = batch.to(self.device)
             true = batch.y
+            pred, _ = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+            # flatten the pred
+            pred = pred.view(-1)
             is_labeled = batch.y == batch.y
             pred, true = pred[is_labeled], true[is_labeled]
-
-            pred = pred.squeeze(-1) if pred.ndim > 1 else pred
-            true = true.squeeze(-1) if true.ndim > 1 else true
-
-            loss = self.loss_fn(pred, true)
-            pred = torch.sigmoid(pred)
+            true = (true + 1)/2     # Original [-1, 1] to [0, 1]
+            loss = self.loss_fn(pred.float(), true.float())
             return loss, pred, true
     
     def train_epoch(self, epoch, model, train_loader):
         model.train()
         losses = []
-        pbar = tqdm(enumerate(train_loader), total=len(train_loader))
+
+        pbar = tqdm(enumerate(train_loader))
         # pbar = enumerate(train_loader)
         for it, batch in pbar:
             if self.device == 'cuda':
                 with torch.autocast(device_type=self.device, dtype=torch.float16, enabled=self.use_amp):
-                    loss, _, _ = self.run_forward(model, batch)
+                    if self.task_type == 'pretrain':
+                        loss, acc_node, acc_edge = self.run_forward(model, batch)
+                    else:
+                        loss, _, _ = self.run_forward(model, batch)
                     loss = loss.mean()  # collapse all losses if they are scattered on multiple gpus
             else:
                 loss, _, _ = self.run_forward(model, batch)
@@ -131,15 +135,18 @@ class TaskTrainer:
 
         y_test = np.concatenate(y_test, axis=0).squeeze()
         y_test_hat = np.concatenate(y_test_hat, axis=0).squeeze()
-        # logger.info(f'y_test: {y_test.shape}, y_test_hat: {y_test_hat.shape}')
+        # logger.debug(f'y_test: {y_test.shape}, y_test_hat: {y_test_hat.shape}')
         if self.task_type == 'regression':
-            mae, mse, _, spearman, pearson = get_regresssion_metrics(y_test_hat, y_test, print_metrics=False)
-            logger.info(f'{e_type} epoch: {epoch+1}, spearman: {spearman:.3f}, pearson: {pearson:.3f}, mse: {mse:.3f}, mae: {mae:.3f}')
+            mae, mse, _, spearman, pearson = get_regresssion_metrics(y_test_hat, y_test, print_metrics=True)
             self.writer.add_scalar('spearman', spearman, epoch + 1)
             metric = spearman
         elif self.task_type == 'classification':
-            acc, pr, sn, sp, mcc, auroc = get_metrics(y_test_hat > 0.5, y_test, print_metrics=False)
-            logger.info(f'{e_type} epoch: {epoch+1}, acc: {acc*100:.2f}, pr: {pr*100:.3f}, sn: {sn*100:.3f}, sp: {sp:.2f}, mcc: {mcc:.3f}, auroc: {auroc:.3f}')
+            y_test = np.array(y_test, dtype=bool)          # Original [-1, 1] to [0, 1]
+            y_test_hat = y_test_hat > 0.5
+            
+            # logger.debug(f'y_test values: {np.unique(y_test)}')
+            # logger.debug(f'y_test_hat values: {np.unique(y_test_hat)}')
+            acc, pr, sn, sp, mcc, auroc = get_metrics(y_test_hat, y_test, print_metrics=True)
             self.writer.add_scalar('mcc', mcc, epoch + 1)
             metric = mcc
         return loss, metric
