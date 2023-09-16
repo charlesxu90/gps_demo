@@ -1,0 +1,27 @@
+data: 
+  dataset: sider              # dataset name
+  # dataset_dir: data
+  batch_size: 32              # batch size
+  num_workers: 4               # number of workers for data loading
+  mask_edge: True
+  mask_rate1: 0.15
+  mask_rate2: 0.30
+
+model:
+  num_tasks: 27
+  emb_dim: 300
+  num_layer: 5
+  JK: last                    # how the node features are combined across layers. last, sum, max or concat
+  drop_ratio: 0.5
+  gnn_type: gin               # gin or gcn
+  graph_pooling: mean
+
+train:  # Training params
+  task_type: classification
+  device: 'cuda'                    # device to use for training
+  max_epochs: 100                    # *total number of epochs, 200
+  learning_rate: 0.001              # *learning rate
+  lr_patience: 20
+  lr_decay: 0.0
+  min_lr: 1e-6
+  weight_decay: 0.

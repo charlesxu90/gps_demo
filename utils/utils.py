@@ -77,7 +77,7 @@ def get_metrics(y_hat, y_test, print_metrics=True):
     y_hat, y_test = y_hat[~nas].squeeze(), y_test[~nas].squeeze()
     
     if len(y_hat) == 0 or len(y_test) == 0:
-        return np.nan, np.nan, np.nan, np.nan, np.nan
+        return {'acc': np.nan, 'pr': np.nan, 'sn':  np.nan, 'sp': np.nan, 'mcc': np.nan, 'auroc': np.nan, 'core': np.nan}
     
     acc = accuracy_score(y_test, y_hat)
     pr = precision_score(y_test, y_hat, zero_division=np.nan)
@@ -89,7 +89,7 @@ def get_metrics(y_hat, y_test, print_metrics=True):
     if print_metrics:
         print(f'Acc(%) \t Pr(%) \t Sn(%) \t Sp(%) \t MCC \t AUROC')
         print(f'{acc*100:.2f}\t{pr*100:.2f}\t{sn*100:.2f}\t{sp*100:.2f}\t{mcc:.3f}\t{auroc:.3f}')
-    return acc, pr, sn, sp, mcc, auroc
+    return {'acc': acc, 'pr': pr, 'sn':  sn, 'sp': sp, 'mcc': mcc, 'auroc': auroc, 'core': acc}
 
 class ContrastiveLoss(torch.nn.Module):
     def __init__(self, margin=1.0):
@@ -110,7 +110,7 @@ def get_regresssion_metrics(y_hat, y_test, print_metrics=True):
     y_hat, y_test = y_hat[~nas].squeeze(), y_test[~nas].squeeze()
     
     if len(y_hat) == 0 or len(y_test) == 0:
-        return np.nan, np.nan, np.nan, np.nan, np.nan
+        return {'mae': np.nan, 'mse': np.nan, 'r2': np.nan, 'spearman': np.nan, 'pearson': np.nan, 'core': np.nan}
     
     mae = mean_absolute_error(y_test, y_hat)
     mse = mean_squared_error(y_test, y_hat)
@@ -121,7 +121,7 @@ def get_regresssion_metrics(y_hat, y_test, print_metrics=True):
     if print_metrics:
         print(f'MAE \t MSE \t R2 \t Spearman \t Pearson')
         print(f'{mae:.3f}\t{mse:.3f}\t{r2:.3f}\t{spearman.correlation:.3f}\t{pearson[0]:.3f}')
-    return mae, mse, r2, spearman.correlation, pearson[0]
+    return {'mae': mae, 'mse': mse, 'r2':  r2, 'spearman': spearman.correlation, 'pearson': pearson[0], 'core': mae}
 
 
 def count_params(model):

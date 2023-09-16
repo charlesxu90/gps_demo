@@ -67,7 +67,6 @@ def main(args, config):
     logger.info(f"Training finished")
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='gps/task_finetune.yaml')
